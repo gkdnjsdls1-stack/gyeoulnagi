@@ -66,6 +66,8 @@ header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
   100%{opacity:0;transform:translateY(-34px) scale(1)}}
 .scene.fedA .walker img{filter:saturate(1.15) brightness(1.06)}
 .scene.fedG .singer img{filter:saturate(1.15) brightness(1.06)}
+.scene.bond .walker .bob{animation-duration:.5s}
+.scene.bond .singer .bob{animation-duration:1.1s}
 
 /* 굴뚝 연기 · 창문 불빛 (집 단계) */
 .smoke{position:absolute;pointer-events:none;width:7px;height:7px;border-radius:50%;
@@ -448,7 +450,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--food);outline-o
   <h2>마당 꾸미기</h2>
   <p class="shopnote">적을 때마다 개미가 도토리를 물어옵니다.
     <b style="color:var(--txt)">얼마를 썼는지와 상관없이</b>, 적었다는 것만으로요.<br>
-    장면에서 <b style="color:var(--txt)">개미·베짱이·집을 누르면</b> 도토리를 줄 수 있습니다.</p>
+    장면에서 <b style="color:var(--txt)">개미·베짱이·집을 누르면</b> 도토리를 줄 수 있습니다.<br>
+    한 번 적을 때마다 <b style="color:var(--txt)">1개</b>, 그날 첫 기록에 <b style="color:var(--txt)">+3 더하기 연속일수</b>.</p>
   <div class="shop" id="shopList"></div>
   <div class="streak" id="streakBox"></div>
   <div class="row"><button class="b-ok" id="shopClose">닫 기</button></div>
@@ -530,10 +533,15 @@ if(S.budgetUnset===undefined) S.budgetUnset=false;
 if(typeof S.acorn!=='number') S.acorn=0;
 if(!Array.isArray(S.owned)) S.owned=[];
 if(typeof S.streak!=='number') S.streak=0;
-if(!S.fed) S.fed={ant:0,gh:0};          // 마지막으로 먹인 시각
+if(!S.fond) S.fond={ant:0,gh:0};        // 호감도 0~100
+if(!S.feedCnt) S.feedCnt={d:'',ant:0,gh:0};
 if(typeof S.home!=='number') S.home=0;  // 집에 넣은 도토리 누적
 
-const FEED=2, FULL=12*3600*1000;        // 2개, 12시간 배부름
+const FEED=1;            // 한 번에 도토리 1개
+const UP=8, UP_WEAK=1;   // 하루 3번까지 +8, 그 뒤로는 +1
+const CAP=3, DECAY=4;    // 하루 안 주면 -4
+const FOND=[[80,'아주 친함'],[50,'친함'],[20,'익숙함'],[0,'서먹함']];
+const fondName=v=>FOND.find(f=>v>=f[0])[1];
 const HOME=[                            // 집 단계 — 누적 도토리
   {at:0,   n:'작은 오두막', d:'아직은 비바람만 겨우 막습니다.'},
   {at:120, n:'굴뚝이 생긴 집', d:'굴뚝에서 연기가 납니다.'},
@@ -541,6 +549,17 @@ const HOME=[                            // 집 단계 — 누적 도토리
   {at:1000,n:'이층집', d:'헛간까지 붙은 제대로 된 집입니다.'},
 ];
 const homeLv=()=>HOME.reduce((a,h,i)=>S.home>=h.at?i:a,0);
+
+// 마지막 접속 이후 지난 날만큼 호감도가 내려간다
+(function decay(){
+  const t=new Date().toLocaleDateString('sv');
+  if(S.fondDay){
+    const gap=Math.round((new Date(t+'T00:00')-new Date(S.fondDay+'T00:00'))/864e5);
+    if(gap>0){ for(const k of ['ant','gh']) S.fond[k]=Math.max(0,S.fond[k]-DECAY*gap); }
+  }
+  S.fondDay=t;
+  if(S.feedCnt.d!==t) S.feedCnt={d:t,ant:0,gh:0};
+})();
 
 const DECO=[
   {id:'tree',    n:'나무',   c:30,  d:'마당 끝에 한 그루'},
@@ -679,6 +698,7 @@ function render(){
   }
   sc.classList.toggle('fedA',isFed('ant'));
   sc.classList.toggle('fedG',isFed('gh'));
+  sc.classList.toggle('bond',S.fond.ant>=80||S.fond.gh>=80);
 
   // 장식
   for(const el of sc.querySelectorAll('.deco')) el.remove();
@@ -751,7 +771,7 @@ function earn(first){
 }
 
 /* 먹이 주기 — 기분만 바뀐다. 돈 계산엔 아무 영향이 없다 */
-const isFed=k=>Date.now()-(S.fed[k]||0) < FULL;
+const isFed=k=>S.fond[k]>=50;   // 친해지면 눈에 띄게 밝아진다
 function heartsAt(el){
   for(let i=0;i<3;i++){
     const h=document.createElement('span');
@@ -766,9 +786,17 @@ function heartsAt(el){
 }
 function feed(k){
   if(S.acorn<FEED){ fly('도토리가 모자랍니다'); return }
-  S.acorn-=FEED; S.fed[k]=Date.now(); save();
+  const before=fondName(S.fond[k]);
+  S.acorn-=FEED;
+  const n=++S.feedCnt[k];
+  S.fond[k]=Math.min(100, S.fond[k] + (n<=CAP?UP:UP_WEAK));
+  save();
   heartsAt($(k==='ant'?'walker':'singer'));
-  fly(`도토리 −${FEED}`); render(); openFeed(k);
+  const after=fondName(S.fond[k]);
+  const who = k==='ant'?'개미':'베짱이';
+  fly(after!==before ? `${who}와 더 친해졌습니다 — ${after}`
+     : n>CAP ? `${who}가 배부릅니다` : `${who}가 좋아합니다`);
+  render(); openFeed(k);
 }
 
 /* 집에 넣기 — 넣은 만큼 쌓이고 단계가 오른다 */
@@ -810,15 +838,17 @@ function openFeed(k){
       $('feedProgTxt').textContent='더 자랄 곳이 없습니다. 충분히 좋은 집입니다.';
     }
   } else {
-    const ant=k==='ant';
-    $('feedTitle').textContent= ant?'개미':'베짱이';
+    const ant=k==='ant', who=ant?'개미':'베짱이';
+    $('feedTitle').textContent=who;
     img.src= ant?'ant.png':'gh.png';
-    const fed=isFed(k);
-    st.innerHTML = fed
-      ? '<b>배부릅니다.</b><br>한동안은 든든해 보입니다.'
-      : (ant ? '짐을 나르느라 배가 고픕니다.' : '노래하느라 배가 고픕니다.');
+    const n=S.feedCnt[k], more=CAP-n;
+    st.innerHTML = `지금 사이 — <b>${fondName(S.fond[k])}</b><br>`
+      + (n===0 ? '오늘은 아직 안 줬습니다.'
+        : more>0 ? `오늘 ${n}번 줬습니다. ${more}번까지 더 좋아합니다.`
+                 : `오늘 ${n}번 줬습니다. 오늘은 충분히 배부릅니다.`)
+      + '<br><span style="opacity:.75">며칠 안 주면 조금씩 서먹해집니다.</span>';
     const b=document.createElement('button');
-    b.textContent=fed?`한 번 더 (도토리 ${FEED})`:`도토리 ${FEED}개 주기`;
+    b.textContent=`도토리 ${FEED}개 주기`;
     b.disabled=S.acorn<FEED;
     b.onclick=()=>feed(k); row.append(b);
   }
@@ -1059,6 +1089,13 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   $('pgToday').hidden=m; $('pgMonth').hidden=!m;
   if(!m) span();
 });
+
+// 아주 친하면 가끔 저절로 하트가 뜬다
+setInterval(()=>{
+  if($('pgToday').hidden)return;
+  for(const [k,el] of [['ant','walker'],['gh','singer']])
+    if(S.fond[k]>=80 && Math.random()<0.35) heartsAt($(el));
+},22000);
 
 sky(); span(); render();
 setInterval(sky,10*60*1000);
