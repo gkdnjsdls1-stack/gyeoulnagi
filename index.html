@@ -59,6 +59,14 @@ header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .scene .tapme{position:absolute;bottom:20%;font-size:13px;pointer-events:none;
   filter:drop-shadow(0 1px 2px #0006);animation:bobz 1.6s ease-in-out infinite}
 @keyframes bobz{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.says{position:absolute;transform:translateX(-50%);max-width:74%;z-index:3;
+  background:#FFFFFFF2;color:#24352C;font-size:11.5px;line-height:1.45;
+  padding:7px 10px;border-radius:12px;box-shadow:0 2px 0 #0000001F;
+  text-align:center;pointer-events:none;animation:says .25s ease-out}
+.says::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;
+  border:5px solid transparent;border-top-color:#FFFFFFF2;border-bottom:0}
+@keyframes says{from{opacity:0;transform:translate(-50%,6px) scale(.9)}
+  to{opacity:1;transform:translate(-50%,0) scale(1)}}
 .heart{position:absolute;pointer-events:none;font-size:15px;
   animation:heart 1.3s ease-out forwards}
 @keyframes heart{0%{opacity:0;transform:translateY(4px) scale(.6)}
@@ -542,6 +550,15 @@ const UP=8, UP_WEAK=1;   // 하루 3번까지 +8, 그 뒤로는 +1
 const CAP=3, DECAY=4;    // 하루 안 주면 -4
 const FOND=[[80,'아주 친함'],[50,'친함'],[20,'익숙함'],[0,'서먹함']];
 const fondName=v=>FOND.find(f=>v>=f[0])[1];
+// 표정: 기쁨(방금 먹음·아주 친함) / 보통 / 시무룩(서먹함)
+let justFed={ant:0,gh:0};
+function face(k){
+  const base = k==='ant'?'ant':'gh';
+  if(Date.now()-justFed[k] < 6000) return base+'-happy.png';
+  if(S.fond[k]>=80) return base+'-happy.png';
+  if(S.fond[k]<20)  return base+'-sad.png';
+  return base+'.png';
+}
 const HOME=[                            // 집 단계 — 누적 도토리
   {at:0,   n:'작은 오두막', d:'아직은 비바람만 겨우 막습니다.'},
   {at:120, n:'굴뚝이 생긴 집', d:'굴뚝에서 연기가 납니다.'},
@@ -696,6 +713,8 @@ function render(){
     g.style.right='8%'; g.style.bottom='24%'; g.style.width='46px'; g.style.height='46px';
     sc.append(g);
   }
+  sc.querySelector('#walker img').src=face('ant');
+  sc.querySelector('#singer img').src=face('gh');
   sc.classList.toggle('fedA',isFed('ant'));
   sc.classList.toggle('fedG',isFed('gh'));
   sc.classList.toggle('bond',S.fond.ant>=80||S.fond.gh>=80);
@@ -770,8 +789,62 @@ function earn(first){
   fly(`도토리 +${n}${msg}`);
 }
 
+/* 먹일 때 나오는 말 — 호감도 단계별로 다르게 */
+const SAY={
+ ant:{
+  low:['...고맙습니다.','조용히 받아 갑니다.','눈도 안 마주치고 가져갑니다.','창고에 넣어두겠습니다.',
+       '이런 건 안 주셔도 되는데요.','잠깐 멈춰 서서 받습니다.','고개만 까딱합니다.','주머니에 넣습니다.',
+       '한참 들여다보다 가져갑니다.','아껴 먹겠습니다.','일하다 말고 받습니다.','살짝 놀란 표정입니다.'],
+  mid:['잘 먹겠습니다.','오늘 몫은 챙겼습니다.','이거면 한참 버팁니다.','짐을 내려놓고 받습니다.',
+       '한 입에 가져갑니다.','기운이 좀 납니다.','쌓아두는 게 버릇이라서요.','덕분에 오늘은 가볍습니다.',
+       '이제 좀 알 것 같습니다.','일할 맛이 납니다.','창고 생각이 덜 납니다.','손이 빨라졌습니다.',
+       '잠깐 앉아서 먹습니다.','오늘도 수고하셨습니다.'],
+  high:['기다리고 있었습니다.','오실 줄 알았습니다.','같이 드실래요?','이건 제가 제일 좋아하는 겁니다.',
+        '오늘은 짐이 가볍게 느껴집니다.','한 알 남겨뒀다 나중에 먹겠습니다.','겨울이 덜 무섭습니다.',
+        '요즘 창고가 든든합니다.','당신 덕에 부지런해집니다.','잠깐 쉬었다 갈까요.','발걸음이 가볍습니다.',
+        '오늘도 와주셨네요.','이러다 살찌겠습니다.','고맙다는 말로는 부족합니다.'],
+  full:['이제 배가 부릅니다.','더는 못 들고 갑니다.','창고가 꽉 찼습니다.','내일 또 주세요.',
+        '오늘은 충분합니다.','욕심내면 상합니다.','남은 건 아껴두죠.','배가 불러서 느려졌습니다.',
+        '이쯤에서 그만두겠습니다.','잘 받아두겠습니다.']},
+ gh:{
+  low:['아, 네. 감사합니다.','바이올린을 잠깐 내려놓습니다.','쭈뼛거리며 받습니다.','낯을 좀 가립니다.',
+       '작게 한 소절 켭니다.','...이거 먹어도 되나요?','멀찍이서 받아 갑니다.','조용히 씹습니다.',
+       '아직 어색합니다.','고맙다고 중얼거립니다.','슬쩍 웃습니다.','활을 만지작거립니다.'],
+  mid:['오, 좋은데요!','한 곡 뽑아야겠습니다.','맛있습니다. 정말로요.','기분이 좋아졌습니다.',
+       '이런 날엔 노래가 잘 됩니다.','박자가 빨라집니다.','개미는 이런 거 안 좋아하던데요.',
+       '먹으면서 흥얼거립니다.','오늘 날씨도 좋고요.','한 입에 사라졌습니다.','또 주실 거죠?',
+       '손가락이 근질거립니다.','즐거운 건 나눠야죠.','이게 바로 사는 맛입니다.'],
+  high:['기다렸어요!','당신을 위한 곡을 하나 썼습니다.','제일 좋아하는 겁니다. 어떻게 아셨죠?',
+        '오늘은 신나게 켜보겠습니다.','같이 들으실래요?','이 맛에 삽니다.','덕분에 목청이 트였습니다.',
+        '한 곡 더!','세상에서 제일 맛있습니다.','춤이 나옵니다.','당신이 오면 하루가 길어집니다.',
+        '겨울도 괜찮을 것 같습니다.','개미한테는 비밀로 해주세요.','또 올 거죠? 기다릴게요.'],
+  full:['배가 불러서 음이 안 올라갑니다.','오늘은 여기까지!','더 먹으면 못 움직입니다.',
+        '내일을 위해 남겨두죠.','충분히 행복합니다.','이제 소화 좀 시키고요.','잠깐 누워야겠습니다.',
+        '배부르면 노래가 늘어집니다.','고맙지만 사양하겠습니다.','내일 또 주세요!']}
+};
+let lastSay='';
+function say(k,bucket){
+  const pool=SAY[k][bucket];
+  let t=pool[Math.floor(Math.random()*pool.length)];
+  if(pool.length>1) while(t===lastSay) t=pool[Math.floor(Math.random()*pool.length)];
+  lastSay=t; return t;
+}
+
 /* 먹이 주기 — 기분만 바뀐다. 돈 계산엔 아무 영향이 없다 */
 const isFed=k=>S.fond[k]>=50;   // 친해지면 눈에 띄게 밝아진다
+function bubble(k,text){
+  const el=$(k==='ant'?'walker':'singer'), sc=$('scene');
+  sc.querySelectorAll('.says').forEach(x=>x.remove());
+  const b=document.createElement('div'); b.className='says'; b.textContent=text;
+  const r=el.getBoundingClientRect(), s=sc.getBoundingClientRect();
+  b.style.left='0px'; b.style.bottom=(s.bottom-r.top+10)+'px';
+  sc.append(b);
+  // 말풍선 폭을 재고 나서 화면 안으로 밀어 넣는다
+  const bw=b.getBoundingClientRect().width;
+  const x=Math.max(bw/2+6, Math.min(s.width-bw/2-6, r.left-s.left+r.width/2));
+  b.style.left=x+'px';
+  setTimeout(()=>b.remove(),4200);
+}
 function heartsAt(el){
   for(let i=0;i<3;i++){
     const h=document.createElement('span');
@@ -794,9 +867,12 @@ function feed(k){
   heartsAt($(k==='ant'?'walker':'singer'));
   const after=fondName(S.fond[k]);
   const who = k==='ant'?'개미':'베짱이';
-  fly(after!==before ? `${who}와 더 친해졌습니다 — ${after}`
-     : n>CAP ? `${who}가 배부릅니다` : `${who}가 좋아합니다`);
+  justFed[k]=Date.now();
+  const bucket = n>CAP ? 'full' : S.fond[k]>=80 ? 'high' : S.fond[k]>=20 ? 'mid' : 'low';
+  bubble(k, say(k,bucket));
+  if(after!==before) fly(`${who}와 더 친해졌습니다 — ${after}`);
   render(); openFeed(k);
+  setTimeout(()=>render(), 6100);   // 표정 되돌리기
 }
 
 /* 집에 넣기 — 넣은 만큼 쌓이고 단계가 오른다 */
@@ -840,7 +916,7 @@ function openFeed(k){
   } else {
     const ant=k==='ant', who=ant?'개미':'베짱이';
     $('feedTitle').textContent=who;
-    img.src= ant?'ant.png':'gh.png';
+    img.src= face(k);
     const n=S.feedCnt[k], more=CAP-n;
     st.innerHTML = `지금 사이 — <b>${fondName(S.fond[k])}</b><br>`
       + (n===0 ? '오늘은 아직 안 줬습니다.'
