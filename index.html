@@ -29,11 +29,21 @@ body{margin:0;background:var(--bg);color:var(--txt);
 header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .cyc{font-size:12px;color:var(--mut)}
 .cyc b{color:var(--txt);font-weight:700}
-.status{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:11.5px;
+.status{position:relative;margin-left:auto;display:flex;align-items:center;gap:7px;font-size:11.5px;
   color:var(--mut);background:var(--panel);border:1px solid var(--line);
   padding:6px 11px;border-radius:9px}
 .status .n{font-size:16px;font-weight:700;color:var(--txt)}
 .status i{border-radius:2px}
+.status.bump{animation:bump .55s cubic-bezier(.3,1.5,.5,1)}
+@keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.14)}100%{transform:scale(1)}}
+.delta{position:absolute;right:0;top:calc(100% + 4px);white-space:nowrap;
+  font-size:12px;font-weight:700;color:var(--lack);animation:delta 1.6s ease-out forwards}
+@keyframes delta{0%{opacity:0;transform:translateY(-6px)}
+  18%{opacity:1;transform:translateY(0)}75%{opacity:1}100%{opacity:0;transform:translateY(6px)}}
+.ghost{position:absolute;width:13px;height:9px;background:var(--food);border-radius:4px 4px 3px 3px;
+  pointer-events:none;animation:ghost .7s ease-in forwards;z-index:4}
+@keyframes ghost{0%{opacity:1;transform:translate(0,0) rotate(0)}
+  100%{opacity:0;transform:translate(14px,26px) rotate(40deg)}}
 .acorn{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);
   padding:6px 11px;border-radius:9px;font-size:11.5px;color:var(--mut);cursor:pointer}
 .acorn:hover{border-color:var(--food);color:var(--txt)}
@@ -59,7 +69,7 @@ header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .scene .tapme{position:absolute;bottom:20%;font-size:13px;pointer-events:none;
   filter:drop-shadow(0 1px 2px #0006);animation:bobz 1.6s ease-in-out infinite}
 @keyframes bobz{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-.says{position:absolute;transform:translateX(-50%);max-width:74%;z-index:3;
+.says{position:absolute;transform:translateX(-50%);max-width:74%;z-index:5;white-space:pre-line;
   background:#FFFFFFF2;color:#24352C;font-size:11.5px;line-height:1.45;
   padding:7px 10px;border-radius:12px;box-shadow:0 2px 0 #0000001F;
   text-align:center;pointer-events:none;animation:says .25s ease-out}
@@ -661,8 +671,18 @@ function render(){
   $('acornN').textContent=S.acorn;
 
   // 식량 더미
-  const st=$('store'); const want=Math.min(c.food,12);
-  while(st.children.length>want) st.lastChild.remove();
+  const st=$('store'), sc0=$('scene');
+  // 더미 12칸 = 한 주기치. 비율로 쌓아야 초반에도 줄어드는 게 보인다
+  const want=Math.max(0,Math.min(12, Math.round(c.food/S.days*12)));
+  while(st.children.length>want){
+    const el=st.lastChild, r=el.getBoundingClientRect(), s0=sc0.getBoundingClientRect();
+    el.remove();
+    if(r.width){                      // 빠져나간 자루를 하나 떨어뜨린다
+      const g=document.createElement('span'); g.className='ghost';
+      g.style.left=(r.left-s0.left)+'px'; g.style.top=(r.top-s0.top)+'px';
+      sc0.append(g); setTimeout(()=>g.remove(),800);
+    }
+  }
   while(st.children.length<want) st.append(document.createElement('i'));
 
   // 격자
@@ -1050,6 +1070,24 @@ function cheer(who){const el=$(who==='ant'?'walker':'singer');
 
 $('veil').onclick=close; $('bCancel').onclick=close;
 $('bOpen').onclick=()=>{sel=null;editIdx=null;toggleNew(false);openSheet()};
+function showRecord(row, beforeFood){
+  const c=calc(), ant=row.k==='ant';
+  const el=$(ant?'walker':'singer');
+  const left=Math.max(0,Math.round(c.dayGrass-c.tg));
+  bubble(row.k,
+    `${row.n} ${won(row.a)}원\n`+
+    (ant ? `창고에서 ${unit(row.a,c.dayTotal)}`
+         : `노래 몫에서 · 오늘 ${left>0?won(left)+'원 남음':'다 썼음'}`));
+  const chip=document.querySelector('.status');
+  chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump');
+  chip.querySelectorAll('.delta').forEach(x=>x.remove());
+  if(c.food<beforeFood){
+    const d=document.createElement('span');
+    d.className='delta'; d.textContent=`식량 −${beforeFood-c.food}일`;
+    chip.append(d); setTimeout(()=>d.remove(),1700);
+  }
+}
+
 $('bOk').onclick=()=>{
   if($('newitem').classList.contains('on')){
     const n=$('niName').value.trim(), p=+$('niPrice').value;
@@ -1067,10 +1105,11 @@ $('bOk').onclick=()=>{
   const d=today(); if(!Array.isArray(S.log[d])) S.log[d]=[];
   const row={n:sel.n,k:sel.k,a:amt}, who=sel.k, wasEdit=editIdx!==null;
   const first = !wasEdit && S.log[d].length===0;
+  const beforeFood = calc().food;
   if(wasEdit && S.log[d][editIdx]) S.log[d][editIdx]=row; else S.log[d].push(row);
   save(); close();
-  if(!wasEdit) earn(first);
-  render(); if(!wasEdit) cheer(who);
+  render();
+  if(!wasEdit){ cheer(who); showRecord(row, beforeFood); setTimeout(()=>earn(first), 950); }
 };
 $('tAdd').onclick=()=>{sel=null;editIdx=null;toggleNew(false);openSheet()};
 $('bNone').onclick=()=>{
