@@ -309,11 +309,6 @@ header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .intro .box{max-width:360px;margin:0 auto}
 .intro h1{font-size:21px;margin:8px 0 4px}
 .intro .sub{color:var(--mut);font-size:12px;margin:0 0 22px}
-.intro ul{padding:0;margin:0}
-.intro li{list-style:none;display:flex;gap:11px;margin-bottom:17px;align-items:flex-start}
-.intro .ic{width:30px;flex:none;display:flex;justify-content:center;padding-top:2px}
-.intro .ic i{display:block;width:13px;height:13px}
-.intro b{display:block;font-size:13.5px;margin-bottom:2px}
 .intro p{margin:0;font-size:12px;color:var(--mut);line-height:1.6}
 .step2{display:none}.intro.s2 .step1{display:none}.intro.s2 .step2{display:block}
 .bigamt{text-align:center;padding:16px 0 12px;border:1.5px solid var(--line);border-radius:14px;
@@ -347,6 +342,16 @@ header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .items.edit button[data-new]::after{content:""}
 .nidel{width:100%;margin-top:10px;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;
   background:none;border:1.3px solid var(--lack);color:var(--lack);border-radius:9px;padding:9px}
+.talk{display:flex;flex-direction:column;gap:14px;margin:4px 0 20px}
+.talk .t{display:flex;gap:10px;align-items:flex-start}
+.talk .t.gh{flex-direction:row-reverse}
+.talk .t img{width:46px;flex:none;image-rendering:pixelated;align-self:flex-end}
+.talk .t p{margin:0;position:relative;background:#FFFFFFF2;color:#24352C;
+  font-size:12.5px;line-height:1.6;padding:10px 12px;border-radius:13px}
+.talk .t p b{color:#13241B}
+.talk .t p::after{content:"";position:absolute;left:-5px;bottom:12px;
+  border:5px solid transparent;border-right-color:#FFFFFFF2;border-left:0}
+.talk .t.gh p::after{left:auto;right:-5px;border-right:0;border-left-color:#FFFFFFF2}
 .intro .go{width:100%;font:inherit;font-size:15px;font-weight:700;letter-spacing:.08em;
   background:var(--ant);color:#241A0A;border:0;padding:15px;cursor:pointer;margin-top:6px}
 button:focus-visible,input:focus-visible{outline:2px solid var(--food);outline-offset:2px}
@@ -399,9 +404,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--food);outline-o
   </div>
 
   <div class="gwrap" id="pgMonth" hidden>
-    <p class="capt">한 주기(<b id="cDays">30</b>일)를 한 장에 펼친 겁니다.<br>
-      지나간 날은 <b>그날 쓴 만큼</b> 막대가 쌓여 있고, 앞으로 올 날은 <b>남은 식량</b>입니다.<br>
-      칸을 누르면 그날 내용이 아래에 나옵니다.</p>
+    <p class="capt">한 주기(<b id="cDays">30</b>일). 지나간 날은 <b>쓴 만큼</b>,
+      앞으로 올 날은 <b>남은 식량</b>. 칸을 누르면 그날 내용이 나옵니다.</p>
     <div class="grid" id="wd"></div>
     <div class="grid" id="grid"></div>
     <div class="dayinfo" id="dayinfo"></div>
@@ -423,24 +427,17 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--food);outline-o
 <div class="intro" id="intro"><div class="box">
   <div class="step1">
   <h1>겨울나기</h1>
-  <p class="sub">쓴 돈을 개미와 베짱이로 나눠 적는 가계부</p>
-  <ul>
-    <li><span class="ic"><i class="i-ant"></i></span><div>
-      <b>개미 = 꼭 써야 하는 돈</b>
-      <p>밥, 교통, 생필품. 아껴서 창고에 남겨야 다음 월급까지 버팁니다.</p></div></li>
-    <li><span class="ic"><i class="i-grass"></i></span><div>
-      <b>베짱이 = 즐기는 데 쓴 돈</b>
-      <p>영화, 쇼핑, 디저트. 이쪽은 <b style="display:inline">다 쓰는 게 목표</b>입니다. 남기면 한 달 내내 아무것도 안 한 겁니다.</p></div></li>
-    <li><span class="ic"><i class="i-food"></i></span><div>
-      <b>집 옆에 쌓인 게 남은 식량</b>
-      <p>쓸 때마다 한 칸씩 줄어듭니다. 아래 격자의 오른쪽 칸과 같은 뜻입니다.</p></div></li>
-    <li><span class="ic"><i class="i-empty"></i></span><div>
-      <b>점선 칸 = 못 넘기는 날</b>
-      <p>식량보다 남은 날이 많으면 끝부분이 점선으로 빕니다. 그만큼 모자란다는 뜻입니다.</p></div></li>
-  </ul>
-  <div class="role" style="margin:4px 0 18px">
-    한 줄로 — <b>창고는 남기고, 베짱이 몫은 다 쓰는 것</b>이 목표입니다.
-    아끼기만 하는 게 잘하는 게 아닙니다.
+  <p class="sub">쓴 돈을 둘로 나눠 적는 가계부</p>
+  <div class="talk">
+    <div class="t"><img src="ant.png" alt=""><p>
+      <b>꼭 써야 하는 돈</b>은 제가 맡습니다. 밥·교통·생필품이요.<br>
+      아껴서 <b>창고에 남겨야</b> 다음 월급까지 버팁니다.</p></div>
+    <div class="t gh"><img src="gh.png" alt=""><p>
+      <b>즐기는 데 쓰는 돈</b>은 제 몫이에요.<br>
+      이쪽은 <b>다 쓰셔야 합니다.</b> 남기면 한 달 내내 아무것도 안 하신 거니까요.</p></div>
+    <div class="t"><img src="ant.png" alt=""><p>
+      집 옆에 쌓인 게 제 창고입니다. 쓰면 줄어요.<br>
+      달력에서 <b>점선으로 빈 칸</b>은, 식량이 거기까진 못 간다는 뜻입니다.</p></div>
   </div>
   <button class="go" id="introGo">다 음</button>
   </div>
@@ -482,10 +479,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--food);outline-o
 
 <div class="sheet" id="shopSheet">
   <h2>마당 꾸미기</h2>
-  <p class="shopnote">적을 때마다 개미가 도토리를 물어옵니다.
-    <b style="color:var(--txt)">얼마를 썼는지와 상관없이</b>, 적었다는 것만으로요.<br>
-    장면에서 <b style="color:var(--txt)">개미·베짱이·집을 누르면</b> 도토리를 줄 수 있습니다.<br>
-    한 번 적을 때마다 <b style="color:var(--txt)">1개</b>, 그날 첫 기록에 <b style="color:var(--txt)">+3 더하기 연속일수</b>.</p>
+  <p class="shopnote">적으면 도토리가 생깁니다 — 한 건에 <b style="color:var(--txt)">1개</b>,
+    그날 첫 기록에 <b style="color:var(--txt)">+3과 연속일수</b>. 쓴 금액과는 무관합니다.<br>
+    장면에서 <b style="color:var(--txt)">개미·베짱이·집을 누르면</b> 줄 수 있어요.</p>
   <div class="shop" id="shopList"></div>
   <div class="streak" id="streakBox"></div>
   <div class="row"><button class="b-ok" id="shopClose">닫 기</button></div>
@@ -765,15 +761,14 @@ function render(){
   }
   const left=Math.max(0,Math.round(c.dayGrass-c.tg));
   $('hint').textContent =
-    c.noLog   ? '아래 「오늘 쓴 것」을 눌러 오늘 쓴 돈을 적어보세요.'
-  : c.zero    ? '오늘은 안 썼습니다. 개미가 좋아합니다.'
-  : c.ta>c.dayAnt&&c.tg===0 ? '오늘 개미가 많이 날랐습니다. 베짱이는 아직 조용하고요.'
-  : c.ta>c.dayAnt ? '오늘 개미가 하루치보다 많이 날랐습니다.'
-  : c.tg===0  ? `오늘 베짱이 몫 ${won(left)}원이 그대로 남아 있습니다.`
-  : c.tg>c.dayGrass*1.8 ? '베짱이가 신났습니다. 개미는 창고를 봅니다.'
-  : left>0    ? `오늘 베짱이 몫이 ${won(left)}원 남았습니다.`
-              : '오늘은 둘 다 잘 지냈습니다.';
-  if(tight) $('hint').textContent += `  (겨울 ${c.lack}일 모자람)`;
+    c.noLog   ? '오늘 쓴 거 적어주세요.'
+  : c.zero    ? '오늘은 안 쓰셨네요.'
+  : c.ta>c.dayAnt ? '오늘 좀 많이 썼어요.'
+  : c.tg===0  ? `저 아직 못 놀았어요. ${won(left)}원 남았는데.`
+  : c.tg>c.dayGrass*1.8 ? '오늘 신납니다!'
+  : left>0    ? `${won(left)}원 더 써도 돼요.`
+              : '둘 다 괜찮아요.';
+  if(tight) $('hint').textContent += `  겨울 ${c.lack}일 모자라요.`;
 
   // 오늘 적은 것
   const log=S.log[today()], tl=$('tlist');
@@ -799,9 +794,9 @@ function render(){
     tl.append(row);
   });
   const dA=Math.round(c.dayAnt), dG=Math.round(c.dayGrass);
-  const aimA = c.ta>c.dayAnt ? ['warn','하루치를 넘었습니다'] : ['','아껴서 창고에 남기는 쪽'];
-  const aimG = c.tg===0 ? ['warn','오늘은 아직 안 즐겼습니다']
-             : c.tg>=c.dayGrass ? ['ok','오늘 몫을 다 썼습니다'] : ['','다 쓰는 게 목표인 쪽'];
+  const aimA = c.ta>c.dayAnt ? ['warn','오늘 좀 많이 썼어요'] : ['','아낄수록 좋아요'];
+  const aimG = c.tg===0 ? ['warn','아직 못 놀았어요']
+             : c.tg>=c.dayGrass ? ['ok','다 썼어요!'] : ['','다 써주세요'];
   $('tsum').innerHTML=
     `<div class="r"><span class="dot" style="background:var(--ant)"></span>`+
     `<span class="who">개미</span>`+
@@ -944,8 +939,7 @@ function openFeed(k){
   if(k==='home'){
     const lv=homeLv(), nx=HOME[lv+1];
     $('feedTitle').textContent='집';
-    $('feedRole').innerHTML='겨울을 나는 곳입니다. 도토리를 넣으면 조금씩 자랍니다.'+
-      '<span class="goal">돈과는 상관없습니다. 적어서 모은 도토리로만 자랍니다.</span>';
+    $('feedRole').innerHTML='도토리를 넣으면 자랍니다. <b>돈과는 상관없어요.</b>';
     img.src = lv>=3 ? 'house2.png' : 'house.png';
     st.innerHTML=`<b>${HOME[lv].n}</b><br>${HOME[lv].d}`;
     if(nx){
@@ -968,12 +962,10 @@ function openFeed(k){
     const ant=k==='ant', who=ant?'개미':'베짱이';
     $('feedTitle').textContent=who;
     $('feedRole').innerHTML = ant
-      ? '<b>꼭 써야 하는 돈</b>을 맡습니다. 밥·교통·생필품 같은 것들이요.'+
-        `<span class="goal">목표 — <b>아껴서 창고에 남기기.</b> 창고가 있어야 다음 월급까지 버팁니다.<br>`+
-        `오늘 <b>${won(cc.ta)}원</b> 썼고, 하루치는 ${won(Math.round(cc.dayAnt))}원입니다.</span>`
-      : '<b>즐기는 데 쓴 돈</b>을 맡습니다. 영화·디저트·쇼핑 같은 것들이요.'+
-        `<span class="goal">목표 — <b>다 쓰기.</b> 남기면 한 달 내내 아무것도 안 한 겁니다.<br>`+
-        `오늘 <b>${won(cc.tg)}원</b> 썼고, 하루치는 ${won(Math.round(cc.dayGrass))}원입니다.</span>`;
+      ? '꼭 써야 하는 돈은 제가 맡아요. <b>아낄수록 좋습니다.</b>'+
+        `<span class="goal">오늘 <b>${won(cc.ta)}</b> / ${won(Math.round(cc.dayAnt))}원</span>`
+      : '즐기는 돈은 제 몫이에요. <b>다 써주세요.</b>'+
+        `<span class="goal">오늘 <b>${won(cc.tg)}</b> / ${won(Math.round(cc.dayGrass))}원</span>`;
     img.src= face(k);
     const n=S.feedCnt[k], more=CAP-n;
     st.innerHTML = `지금 사이 — <b>${fondName(S.fond[k])}</b><br>`
