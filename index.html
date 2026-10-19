@@ -434,7 +434,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--food);outline-o
       아껴서 <b>창고에 남겨야</b> 다음 월급까지 버팁니다.</p></div>
     <div class="t gh"><img src="gh.png" alt=""><p>
       <b>즐기는 데 쓰는 돈</b>은 제 몫이에요.<br>
-      이쪽은 <b>다 쓰셔야 합니다.</b> 남기면 한 달 내내 아무것도 안 하신 거니까요.</p></div>
+      저는 개미와 반대입니다. <b>쓸수록 좋아요.</b> 남기면 한 달 내내 아무것도 안 하신 거니까요.</p></div>
     <div class="t"><img src="ant.png" alt=""><p>
       집 옆에 쌓인 게 제 창고입니다. 쓰면 줄어요.<br>
       달력에서 <b>점선으로 빈 칸</b>은, 식량이 거기까진 못 간다는 뜻입니다.</p></div>
@@ -764,9 +764,9 @@ function render(){
     c.noLog   ? '오늘 쓴 거 적어주세요.'
   : c.zero    ? '오늘은 안 쓰셨네요.'
   : c.ta>c.dayAnt ? '오늘 좀 많이 썼어요.'
-  : c.tg===0  ? `저 아직 못 놀았어요. ${won(left)}원 남았는데.`
+  : c.tg===0  ? `저 아직 하나도 못 썼어요. ${won(left)}원 더 쓰셔도 돼요.`
   : c.tg>c.dayGrass*1.8 ? '오늘 신납니다!'
-  : left>0    ? `${won(left)}원 더 써도 돼요.`
+  : left>0    ? `${won(left)}원 더 쓰셔도 돼요.`
               : '둘 다 괜찮아요.';
   if(tight) $('hint').textContent += `  겨울 ${c.lack}일 모자라요.`;
 
@@ -794,9 +794,10 @@ function render(){
     tl.append(row);
   });
   const dA=Math.round(c.dayAnt), dG=Math.round(c.dayGrass);
+  // 개미는 '아낄수록', 베짱이는 '쓸수록' — 짝이 맞아야 바로 읽힌다
   const aimA = c.ta>c.dayAnt ? ['warn','오늘 좀 많이 썼어요'] : ['','아낄수록 좋아요'];
-  const aimG = c.tg===0 ? ['warn','아직 못 놀았어요']
-             : c.tg>=c.dayGrass ? ['ok','다 썼어요!'] : ['','다 써주세요'];
+  const aimG = c.tg>=c.dayGrass ? ['ok','다 썼어요!']
+             : c.tg===0 ? ['warn','아직 하나도 못 썼어요'] : ['','쓸수록 좋아요'];
   $('tsum').innerHTML=
     `<div class="r"><span class="dot" style="background:var(--ant)"></span>`+
     `<span class="who">개미</span>`+
@@ -964,7 +965,7 @@ function openFeed(k){
     $('feedRole').innerHTML = ant
       ? '꼭 써야 하는 돈은 제가 맡아요. <b>아낄수록 좋습니다.</b>'+
         `<span class="goal">오늘 <b>${won(cc.ta)}</b> / ${won(Math.round(cc.dayAnt))}원</span>`
-      : '즐기는 돈은 제 몫이에요. <b>다 써주세요.</b>'+
+      : '즐기는 돈은 제 몫이에요. 개미와 반대로 <b>쓸수록 좋습니다.</b>'+
         `<span class="goal">오늘 <b>${won(cc.tg)}</b> / ${won(Math.round(cc.dayGrass))}원</span>`;
     img.src= face(k);
     const n=S.feedCnt[k], more=CAP-n;
