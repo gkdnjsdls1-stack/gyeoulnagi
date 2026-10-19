@@ -115,6 +115,10 @@ header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .feedbox img{width:92px;image-rendering:pixelated;margin:4px auto 10px;display:block}
 .feedbox .st{font-size:12.5px;color:var(--mut);margin-bottom:14px;line-height:1.6}
 .feedbox .st b{color:var(--txt)}
+.role{text-align:left;background:var(--cell);border-radius:11px;padding:11px 13px;margin-bottom:14px;
+  font-size:12px;color:var(--mut);line-height:1.65}
+.role b{color:var(--txt)}
+.role .goal{display:block;margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
 .bar2{height:12px;border-radius:6px;background:var(--cell);overflow:hidden;margin:10px 0 6px}
 .bar2 i{display:block;height:100%;background:var(--food);border-radius:6px;transition:width .4s}
 .feedrow{display:flex;gap:8px;margin-top:14px}
@@ -199,9 +203,16 @@ header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .tlist .a{color:var(--mut);font-size:12px}
 .tlist .x{background:none;border:0;color:var(--mut);font-size:16px;cursor:pointer;padding:0 2px;line-height:1}
 .tempty{font-size:12.5px;color:var(--mut)}
-.tsum{display:flex;gap:16px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
-  font-size:11.5px;color:var(--mut)}
-.tsum b{color:var(--txt);font-size:13px}
+.tsum{margin-top:11px;padding-top:11px;border-top:1px solid var(--line);
+  display:flex;flex-direction:column;gap:8px}
+.tsum .r{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--mut)}
+.tsum .dot{width:9px;height:9px;border-radius:2px;flex:none}
+.tsum .who{width:40px;flex:none;color:var(--txt);font-weight:700;font-size:12px}
+.tsum .num{font-variant-numeric:tabular-nums}
+.tsum .num b{color:var(--txt);font-size:13px}
+.tsum .aim{margin-left:auto;font-size:10.5px;text-align:right;line-height:1.35}
+.tsum .aim.ok{color:var(--grass)}
+.tsum .aim.warn{color:var(--lack)}
 
 /* ---------- 격자 ---------- */
 .gwrap{margin-top:10px}
@@ -427,6 +438,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--food);outline-o
       <b>점선 칸 = 못 넘기는 날</b>
       <p>식량보다 남은 날이 많으면 끝부분이 점선으로 빕니다. 그만큼 모자란다는 뜻입니다.</p></div></li>
   </ul>
+  <div class="role" style="margin:4px 0 18px">
+    한 줄로 — <b>창고는 남기고, 베짱이 몫은 다 쓰는 것</b>이 목표입니다.
+    아끼기만 하는 게 잘하는 게 아닙니다.
+  </div>
   <button class="go" id="introGo">다 음</button>
   </div>
 
@@ -453,6 +468,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--food);outline-o
 <div class="sheet" id="feedSheet">
   <h2 id="feedTitle">먹이 주기</h2>
   <div class="feedbox">
+    <div class="role" id="feedRole"></div>
     <img id="feedImg" src="ant.png" alt="">
     <div class="st" id="feedState"></div>
     <div id="feedProg" hidden>
@@ -509,6 +525,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--food);outline-o
     <input class="n" type="text" id="aName" placeholder="이름" maxlength="6">
     <input class="p" type="number" id="aPrice" placeholder="금액" step="500" min="0">
     <button id="aAdd">추가</button></div>
+  <button class="seed" id="howto">설명 다시 보기</button>
   <button class="seed" id="seed">예시 기록 다시 불러오기 (지금 기록은 지워집니다)</button>
   <div class="row"><button class="b-ok" id="setClose">닫 기</button></div>
 </div>
@@ -781,8 +798,19 @@ function render(){
     row.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();edit()}};
     tl.append(row);
   });
-  let ta=0,tg=0; if(Array.isArray(log)) for(const e of log) e.k==='ant'?ta+=e.a:tg+=e.a;
-  $('tsum').innerHTML=`<span>개미 <b>${won(ta)}</b>원</span><span>베짱이 <b>${won(tg)}</b>원</span>`;
+  const dA=Math.round(c.dayAnt), dG=Math.round(c.dayGrass);
+  const aimA = c.ta>c.dayAnt ? ['warn','하루치를 넘었습니다'] : ['','아껴서 창고에 남기는 쪽'];
+  const aimG = c.tg===0 ? ['warn','오늘은 아직 안 즐겼습니다']
+             : c.tg>=c.dayGrass ? ['ok','오늘 몫을 다 썼습니다'] : ['','다 쓰는 게 목표인 쪽'];
+  $('tsum').innerHTML=
+    `<div class="r"><span class="dot" style="background:var(--ant)"></span>`+
+    `<span class="who">개미</span>`+
+    `<span class="num"><b>${won(c.ta)}</b> / ${won(dA)}원</span>`+
+    `<span class="aim ${aimA[0]}">${aimA[1]}</span></div>`+
+    `<div class="r"><span class="dot" style="background:var(--grass)"></span>`+
+    `<span class="who">베짱이</span>`+
+    `<span class="num"><b>${won(c.tg)}</b> / ${won(dG)}원</span>`+
+    `<span class="aim ${aimG[0]}">${aimG[1]}</span></div>`;
 
   $('tAdd').hidden = !(c.idx>=0&&c.idx<S.days);
   const live=c.idx>=0&&c.idx<S.days;
@@ -912,9 +940,12 @@ function openFeed(k){
   const img=$('feedImg'), st=$('feedState'), row=$('feedRow');
   $('feedProg').hidden = k!=='home';
   row.innerHTML='';
+  const cc=calc();
   if(k==='home'){
     const lv=homeLv(), nx=HOME[lv+1];
     $('feedTitle').textContent='집';
+    $('feedRole').innerHTML='겨울을 나는 곳입니다. 도토리를 넣으면 조금씩 자랍니다.'+
+      '<span class="goal">돈과는 상관없습니다. 적어서 모은 도토리로만 자랍니다.</span>';
     img.src = lv>=3 ? 'house2.png' : 'house.png';
     st.innerHTML=`<b>${HOME[lv].n}</b><br>${HOME[lv].d}`;
     if(nx){
@@ -936,6 +967,13 @@ function openFeed(k){
   } else {
     const ant=k==='ant', who=ant?'개미':'베짱이';
     $('feedTitle').textContent=who;
+    $('feedRole').innerHTML = ant
+      ? '<b>꼭 써야 하는 돈</b>을 맡습니다. 밥·교통·생필품 같은 것들이요.'+
+        `<span class="goal">목표 — <b>아껴서 창고에 남기기.</b> 창고가 있어야 다음 월급까지 버팁니다.<br>`+
+        `오늘 <b>${won(cc.ta)}원</b> 썼고, 하루치는 ${won(Math.round(cc.dayAnt))}원입니다.</span>`
+      : '<b>즐기는 데 쓴 돈</b>을 맡습니다. 영화·디저트·쇼핑 같은 것들이요.'+
+        `<span class="goal">목표 — <b>다 쓰기.</b> 남기면 한 달 내내 아무것도 안 한 겁니다.<br>`+
+        `오늘 <b>${won(cc.tg)}원</b> 썼고, 하루치는 ${won(Math.round(cc.dayGrass))}원입니다.</span>`;
     img.src= face(k);
     const n=S.feedCnt[k], more=CAP-n;
     st.innerHTML = `지금 사이 — <b>${fondName(S.fond[k])}</b><br>`
@@ -1077,7 +1115,7 @@ function showRecord(row, beforeFood){
   bubble(row.k,
     `${row.n} ${won(row.a)}원\n`+
     (ant ? `창고에서 ${unit(row.a,c.dayTotal)}`
-         : `노래 몫에서 · 오늘 ${left>0?won(left)+'원 남음':'다 썼음'}`));
+         : `베짱이 몫에서 · 오늘 ${left>0?won(left)+'원 더 써도 됨':'다 썼음'}`));
   const chip=document.querySelector('.status');
   chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump');
   chip.querySelectorAll('.delta').forEach(x=>x.remove());
@@ -1182,11 +1220,15 @@ $('aAdd').onclick=()=>{const n=$('aName').value.trim(), p=+$('aPrice').value;
   if(!n||!(p>0))return; S.items.push({id:uid++,n,k:'grass',p:Math.round(p)});
   $('aName').value='';$('aPrice').value='';save();openSet()};
 $('seed').onclick=()=>{seedInto(S);S.demo=true;save();close();render()};
+$('howto').onclick=()=>{close();$('intro').classList.remove('s2');$('intro').classList.add('on')};
 let bAmt=S.budget;
 const paintBig=()=>{$('bigV').textContent=won(bAmt)};
 dragNumber($('bigamt'),()=>bAmt,v=>{bAmt=v;paintBig()},10000,2.4);
 $('presets').onclick=e=>{const b=e.target.closest('button'); if(!b)return; bAmt=+b.dataset.v; paintBig()};
-$('introGo').onclick=()=>{paintBig();$('intro').classList.add('s2')};
+$('introGo').onclick=()=>{
+  if(S.seen){ $('intro').classList.remove('on'); return }   // 다시 보기일 땐 설명만
+  paintBig(); $('intro').classList.add('s2');
+};
 $('introDone').onclick=()=>{S.budget=bAmt;S.budgetUnset=false;S.seen=true;
   $('intro').classList.remove('on');save();render()};
 $('introSkip').onclick=()=>{S.budgetUnset=true;S.seen=true;
