@@ -796,8 +796,7 @@ function render(){
   const dA=Math.round(c.dayAnt), dG=Math.round(c.dayGrass);
   // 개미는 '아낄수록', 베짱이는 '쓸수록' — 짝이 맞아야 바로 읽힌다
   const aimA = c.ta>c.dayAnt ? ['warn','오늘 좀 많이 썼어요'] : ['','아낄수록 좋아요'];
-  const aimG = c.tg>=c.dayGrass ? ['ok','다 썼어요!']
-             : c.tg===0 ? ['warn','아직 하나도 못 썼어요'] : ['','쓸수록 좋아요'];
+  const aimG = c.tg>=c.dayGrass ? ['ok','다 썼어요!'] : ['','쓸수록 좋아요'];
   $('tsum').innerHTML=
     `<div class="r"><span class="dot" style="background:var(--ant)"></span>`+
     `<span class="who">개미</span>`+
