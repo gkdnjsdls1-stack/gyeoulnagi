@@ -1,0 +1,12 @@
+{
+  "name": "겨울나기",
+  "short_name": "겨울나기",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#0E1C17",
+  "theme_color": "#0E1C17",
+  "icons": [
+    { "src": "ant.png", "sizes": "217x256", "type": "image/png", "purpose": "any" }
+  ]
+}
